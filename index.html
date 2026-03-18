@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Field Inspection</title>
+<style>
+
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #111318;
+  --surface: #1a1d26;
+  --surface2: #222533;
+  --border: #2e3347;
+  --accent: #4f7cff;
+  --accent2: #f5a623;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --text: #e8eaf0;
+  --text2: #8b90a8;
+  --text3: #555a72;
+  --phase1: #4f7cff;
+  --phase2: #f5a623;
+  --phase3: #2ecc71;
+}
+
+body {
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-label {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.file-number {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.file-address {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-generate {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-clear {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* PHASE TABS */
+.phase-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.phase-tab {
+  flex: 1;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--text3);
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.phase-tab.active-p1 { color: var(--phase1); border-color: var(--phase1); }
+.phase-tab.active-p2 { color: var(--phase2); border-color: var(--phase2); }
+.phase-tab.active-p3 { color: var(--phase3); border-color: var(--phase3); }
+
+/* SETUP SCREEN */
+.setup-screen {
+  padding: 30px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.setup-title {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.setup-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 16px;
+  color: var(--text);
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  width: 100%;
+  -webkit-appearance: none;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.field-row .field-group {
+  flex: 1;
+}
+
+.btn-start {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 8px;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+/* CONTENT AREA */
+.content {
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+  padding-bottom: 100px;
+}
+
+/* SECTION CARDS */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.section-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+
+.section-dot.filled { background: var(--green); }
+
+.section-chevron {
+  color: var(--text3);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.section-body {
+  padding: 4px 18px 18px;
+  border-top: 1px solid var(--border);
+  display: none;
+  -webkit-transform: none;
+  transform: none;
+}
+
+.section-body.open {
+  display: block;
+  -webkit-transform: none;
+  transform: none;
+}
+
+/* FORM ELEMENTS */
+.form-row {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: block;
+  margin-top: 14px;
+}
+
+/* PILL SELECTORS */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pill.selected-p1 { background: rgba(79,124,255,0.15); border-color: var(--phase1); color: var(--phase1); font-weight: 600; }
+.pill.selected-p2 { background: rgba(245,166,35,0.15); border-color: var(--phase2); color: var(--phase2); font-weight: 600; }
+.pill.selected-p3 { background: rgba(46,204,113,0.15); border-color: var(--phase3); color: var(--phase3); font-weight: 600; }
+
+/* CONDITION SELECTOR */
+.condition-group {
+  display: flex;
+  gap: 8px;
+}
+
+.cond-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.cond-btn[data-val="Good"].sel { background: rgba(46,204,113,0.2); border-color: #2ecc71; color: #2ecc71; }
+.cond-btn[data-val="Average"].sel { background: rgba(79,124,255,0.2); border-color: #4f7cff; color: #4f7cff; }
+.cond-btn[data-val="Fair"].sel { background: rgba(245,166,35,0.2); border-color: #f5a623; color: #f5a623; }
+.cond-btn[data-val="Poor"].sel { background: rgba(231,76,60,0.2); border-color: #e74c3c; color: #e74c3c; }
+
+/* TEXT AREA */
+.notes-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 16px;
+  color: var(--text);
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+  -webkit-appearance: none;
+}
+
+.notes-input:focus { outline: none; border-color: var(--accent); }
+
+/* NUMBER INPUT */
+.num-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 20px;
+  font-family: 'Courier New', monospace;
+  color: var(--text);
+  width: 100%;
+  -webkit-appearance: none;
+}
+
+.num-input:focus { outline: none; border-color: var(--accent); }
+
+/* INLINE INPUT */
+.inline-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--text);
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  width: 100%;
+  -webkit-appearance: none;
+}
+
+.inline-input:focus { outline: none; border-color: var(--accent); }
+
+/* TWO COL */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+/* ROOM FLOOR SECTION */
+.floor-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.floor-block-title {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.room-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.room-chip {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.room-chip.on { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.1); }
+
+.bath-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.bath-chip {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bath-chip.on { border-color: var(--accent); color: var(--accent); background: rgba(79,124,255,0.1); }
+
+/* CANVAS SECTION */
+.canvas-container {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none;
+  margin-bottom: 12px;
+}
+
+canvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.canvas-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.canvas-btn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.canvas-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,124,255,0.1); }
+.canvas-btn.danger { border-color: var(--red); color: var(--red); }
+
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+/* OUTPUT MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-close {
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 20px;
+}
+
+.output-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-copy {
+  flex: 1;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+.btn-share {
+  flex: 1;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* PHASE BADGE */
+.phase-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-p1 { background: rgba(79,124,255,0.2); color: var(--phase1); }
+.badge-p2 { background: rgba(245,166,35,0.2); color: var(--phase2); }
+.badge-p3 { background: rgba(46,204,113,0.2); color: var(--phase3); }
+
+/* YES/NO TOGGLE */
+.yn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.yn-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.yn-btn.yes.sel { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.15); }
+.yn-btn.no.sel { border-color: var(--red); color: var(--red); background: rgba(231,76,60,0.15); }
+
+/* HIDDEN */
+.hidden { display: none !important; }
+
+/* FLOOR ADD BTN */
+.add-floor-btn {
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text3);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  margin-bottom: 14px;
+  transition: all 0.2s;
+}
+
+.add-floor-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* SAVE INDICATOR */
+.save-indicator {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  padding: 8px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen">
+  <div style="padding: 60px 28px 30px; max-width: 600px; margin: 0 auto;">
+    <div style="margin-bottom: 36px;">
+      <div style="font-family: 'Courier New', monospace; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">Fennell & Associates</div>
+      <div style="font-family: 'Courier New', monospace; font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.2;">Field<br>Inspection</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="field-group">
+        <label class="field-label">File Number</label>
+        <input class="field-input" id="setup-filenum" type="text" placeholder="25-0000" inputmode="text">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Property Address</label>
+        <input class="field-input" id="setup-address" type="text" placeholder="123 Main Street">
+      </div>
+      <div class="field-group">
+        <label class="field-label">City / Community</label>
+        <input class="field-input" id="setup-city" type="text" placeholder="Halifax, NS">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Inspection Date</label>
+        <input class="field-input" id="setup-date" type="date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Assignment Type</label>
+        <div class="pill-group" id="setup-type">
+          <div class="pill" data-val="Residential Financing">Residential Financing</div>
+          <div class="pill" data-val="Estate / Probate">Estate / Probate</div>
+          <div class="pill" data-val="Marital Settlement">Marital Settlement</div>
+          <div class="pill" data-val="Capital Gains">Capital Gains</div>
+          <div class="pill" data-val="Market Rent">Market Rent</div>
+          <div class="pill" data-val="Income Property">Income Property</div>
+          <div class="pill" data-val="As-If Complete">As-If Complete</div>
+        </div>
+      </div>
+      <button class="btn-start" onclick="startInspection()">Begin Inspection →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+
+  <div class="header">
+    <div class="header-top">
+      <div class="file-info">
+        <div class="file-label">File No.</div>
+        <div class="file-number" id="hdr-filenum">—</div>
+        <div class="file-address" id="hdr-address">—</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-clear" onclick="showSetup()">← New</button>
+        <button class="btn-generate" onclick="generateOutput()">Generate ↗</button>
+      </div>
+    </div>
+    <div class="phase-tabs">
+      <div class="phase-tab" id="tab-p1" onclick="showPhase(1)">🚗 Exterior</div>
+      <div class="phase-tab" id="tab-p2" onclick="showPhase(2)">💬 Owner Q&A</div>
+      <div class="phase-tab" id="tab-p3" onclick="showPhase(3)">🏠 Interior</div>
+      <div class="phase-tab" id="tab-p4" onclick="showPhase(4)">📐 Measure</div>
+    </div>
+  </div>
+
+  <!-- PHASE 1: EXTERIOR -->
+  <div id="phase1" class="content hidden">
+
+    <!-- Property Type -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-proptype')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-proptype"></div>
+          Property Type
+        </div>
+        <div class="section-chevron" id="chev-proptype">▼</div>
+      </div>
+      <div class="section-body" id="s-proptype">
+        <label class="form-label">Property Type</label>
+        <div class="pill-group" id="prop-type">
+          <div class="pill" data-val="Detached">Detached</div>
+          <div class="pill" data-val="Semi-Detached">Semi-Detached</div>
+          <div class="pill" data-val="Townhouse">Townhouse</div>
+          <div class="pill" data-val="Condo/Apartment">Condo/Apartment</div>
+          <div class="pill" data-val="Cottage/Cabin">Cottage/Cabin</div>
+          <div class="pill" data-val="Mobile Home">Mobile Home</div>
+        </div>
+
+        <label class="form-label">Style</label>
+        <div class="pill-group" id="prop-style">
+          <div class="pill" data-val="1 Storey">1 Storey</div>
+          <div class="pill" data-val="1.5 Storey">1.5 Storey</div>
+          <div class="pill" data-val="2 Storey">2 Storey</div>
+          <div class="pill" data-val="2.5 Storey">2.5 Storey</div>
+          <div class="pill" data-val="Split Level">Split Level</div>
+          <div class="pill" data-val="Bi-Level">Bi-Level</div>
+          <div class="pill" data-val="A-Frame">A-Frame</div>
+          <div class="pill" data-val="Bungalow">Bungalow</div>
+        </div>
+
+        <label class="form-label">Construction</label>
+        <div class="pill-group" id="prop-construction">
+          <div class="pill" data-val="Wood Frame">Wood Frame</div>
+          <div class="pill" data-val="ICF">ICF</div>
+          <div class="pill" data-val="Brick">Brick</div>
+          <div class="pill" data-val="Concrete Block">Concrete Block</div>
+          <div class="pill" data-val="Steel Frame">Steel Frame</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exterior Finish -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-exterior')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-exterior"></div>
+          Exterior Finish & Roof
+        </div>
+        <div class="section-chevron" id="chev-exterior">▼</div>
+      </div>
+      <div class="section-body" id="s-exterior">
+        <label class="form-label">Exterior Finish</label>
+        <div class="pill-group" id="ext-finish">
+          <div class="pill" data-val="Vinyl">Vinyl</div>
+          <div class="pill" data-val="Wood">Wood</div>
+          <div class="pill" data-val="Brick">Brick</div>
+          <div class="pill" data-val="Aluminum">Aluminum</div>
+          <div class="pill" data-val="Stucco">Stucco</div>
+          <div class="pill" data-val="Hardie Board">Hardie Board</div>
+          <div class="pill" data-val="Stone">Stone</div>
+          <div class="pill" data-val="Mix (Vinyl & Stone)">Vinyl & Stone</div>
+          <div class="pill" data-val="Mix (Brick & Vinyl)">Brick & Vinyl</div>
+        </div>
+
+        <label class="form-label">Exterior Condition</label>
+        <div class="condition-group" id="ext-cond">
+          <div class="cond-btn" data-val="Good">Good</div>
+          <div class="cond-btn" data-val="Average">Average</div>
+          <div class="cond-btn" data-val="Fair">Fair</div>
+          <div class="cond-btn" data-val="Poor">Poor</div>
+        </div>
+
+        <label class="form-label">Roofing Type</label>
+        <div class="pill-group" id="roof-type">
+          <div class="pill" data-val="Asphalt Shingle">Asphalt Shingle</div>
+          <div class="pill" data-val="Metal">Metal</div>
+          <div class="pill" data-val="Rubber Membrane">Rubber Membrane</div>
+          <div class="pill" data-val="Modified Bitumen">Modified Bitumen</div>
+          <div class="pill" data-val="Cedar Shake">Cedar Shake</div>
+          <div class="pill" data-val="Mixed">Mixed</div>
+        </div>
+
+        <label class="form-label">Roof Condition</label>
+        <div class="condition-group" id="roof-cond">
+          <div class="cond-btn" data-val="Good">Good</div>
+          <div class="cond-btn" data-val="Average">Average</div>
+          <div class="cond-btn" data-val="Fair">Fair</div>
+          <div class="cond-btn" data-val="Poor">Poor</div>
+        </div>
+
+        <label class="form-label">Exterior Notes</label>
+        <textarea class="notes-input" id="ext-notes" placeholder="Visible deferred maintenance, moss, paint condition, etc..."></textarea>
+      </div>
+    </div>
+
+    <!-- Foundation & Windows -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-foundation')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-foundation"></div>
+          Foundation & Windows
+        </div>
+        <div class="section-chevron" id="chev-foundation">▼</div>
+      </div>
+      <div class="section-body" id="s-foundation">
+        <label class="form-label">Foundation Type</label>
+        <div class="pill-group" id="foundation-type">
+          <div class="pill" data-val="Poured Concrete">Poured Concrete</div>
+          <div class="pill" data-val="Block">Block</div>
+          <div class="pill" data-val="Stone">Stone</div>
+          <div class="pill" data-val="Piers (Sono Tube)">Piers / Sono Tube</div>
+          <div class="pill" data-val="Slab">Slab</div>
+          <div class="pill" data-val="Crawl Space Walls">Crawl Space Walls</div>
+          <div class="pill" data-val="ICF">ICF</div>
+        </div>
+
+        <label class="form-label">Windows</label>
+        <div class="pill-group" id="window-type">
+          <div class="pill" data-val="PVC/Vinyl">PVC/Vinyl</div>
+          <div class="pill" data-val="Wood">Wood</div>
+          <div class="pill" data-val="Aluminum">Aluminum</div>
+          <div class="pill" data-val="Fibreglass">Fibreglass</div>
+        </div>
+
+        <label class="form-label">Glazing</label>
+        <div class="pill-group" id="window-glazing">
+          <div class="pill" data-val="Single">Single</div>
+          <div class="pill" data-val="Double">Double</div>
+          <div class="pill" data-val="Triple">Triple</div>
+        </div>
+
+        <label class="form-label">Window Style</label>
+        <div class="pill-group" id="window-style">
+          <div class="pill" data-val="Casement">Casement</div>
+          <div class="pill" data-val="Double-Hung">Double-Hung</div>
+          <div class="pill" data-val="Slider">Slider</div>
+          <div class="pill" data-val="Fixed">Fixed</div>
+          <div class="pill" data-val="Mixed">Mixed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Site & Parking -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-site')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-site"></div>
+          Site & Parking
+        </div>
+        <div class="section-chevron" id="chev-site">▼</div>
+      </div>
+      <div class="section-body" id="s-site">
+        <label class="form-label">Driveway</label>
+        <div class="pill-group" id="driveway">
+          <div class="pill" data-val="None">None</div>
+          <div class="pill" data-val="Paved - Single">Paved Single</div>
+          <div class="pill" data-val="Paved - Double">Paved Double</div>
+          <div class="pill" data-val="Gravel">Gravel</div>
+          <div class="pill" data-val="Dirt">Dirt</div>
+          <div class="pill" data-val="Shared">Shared</div>
+          <div class="pill" data-val="Concrete">Concrete</div>
+          <div class="pill" data-val="Interlocking">Interlocking</div>
+        </div>
+
+        <label class="form-label">Garage</label>
+        <div class="pill-group" id="garage">
+          <div class="pill" data-val="No Garage">No Garage</div>
+          <div class="pill" data-val="Single Attached">Single Att.</div>
+          <div class="pill" data-val="Double Attached">Double Att.</div>
+          <div class="pill" data-val="Single Detached">Single Det.</div>
+          <div class="pill" data-val="Double Detached">Double Det.</div>
+          <div class="pill" data-val="Carport">Carport</div>
+          <div class="pill" data-val="Built-in">Built-in</div>
+        </div>
+
+        <label class="form-label">Site Features (select all that apply)</label>
+        <div class="pill-group" id="site-features">
+          <div class="pill" data-val="Deck">Deck</div>
+          <div class="pill" data-val="Patio">Patio</div>
+          <div class="pill" data-val="Shed">Shed</div>
+          <div class="pill" data-val="Workshop">Workshop</div>
+          <div class="pill" data-val="Pool">Pool</div>
+          <div class="pill" data-val="Dock">Dock</div>
+          <div class="pill" data-val="Fence">Fence</div>
+          <div class="pill" data-val="Outbuilding">Outbuilding</div>
+          <div class="pill" data-val="Accessibility Ramp">Access Ramp</div>
+          <div class="pill" data-val="Sunroom">Sunroom</div>
+        </div>
+
+        <label class="form-label">Road Type</label>
+        <div class="pill-group" id="road-type">
+          <div class="pill" data-val="Paved Public">Paved Public</div>
+          <div class="pill" data-val="Gravel Public">Gravel Public</div>
+          <div class="pill" data-val="Private">Private</div>
+          <div class="pill" data-val="Right-of-Way">Right-of-Way</div>
+        </div>
+
+        <label class="form-label">Landscaping</label>
+        <div class="condition-group" id="landscaping">
+          <div class="cond-btn" data-val="Good">Good</div>
+          <div class="cond-btn" data-val="Average">Average</div>
+          <div class="cond-btn" data-val="Fair">Fair</div>
+          <div class="cond-btn" data-val="Poor">Poor</div>
+        </div>
+
+        <label class="form-label">Topography</label>
+        <div class="pill-group" id="topography">
+          <div class="pill" data-val="Level">Level</div>
+          <div class="pill" data-val="Slightly Above Road Grade">Slight Above Grade</div>
+          <div class="pill" data-val="Below Road Grade">Below Grade</div>
+          <div class="pill" data-val="Sloping to Rear">Sloping Rear</div>
+          <div class="pill" data-val="Sloping to Front">Sloping Front</div>
+          <div class="pill" data-val="Rolling">Rolling</div>
+          <div class="pill" data-val="Steeply Sloped">Steeply Sloped</div>
+        </div>
+
+        <label class="form-label">Site Notes</label>
+        <textarea class="notes-input" id="site-notes" placeholder="Lot configuration, easements observed, notable features..."></textarea>
+      </div>
+    </div>
+
+    <!-- Services (observable) -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-services')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-services"></div>
+          Services (Observable)
+        </div>
+        <div class="section-chevron" id="chev-services">▼</div>
+      </div>
+      <div class="section-body" id="s-services">
+        <label class="form-label">Water Supply</label>
+        <div class="pill-group" id="water-supply">
+          <div class="pill" data-val="Municipal">Municipal</div>
+          <div class="pill" data-val="Drilled Well">Drilled Well</div>
+          <div class="pill" data-val="Dug Well">Dug Well</div>
+          <div class="pill" data-val="Lake Intake">Lake Intake</div>
+          <div class="pill" data-val="Cistern">Cistern</div>
+        </div>
+
+        <label class="form-label">Sewage</label>
+        <div class="pill-group" id="sewage">
+          <div class="pill" data-val="Municipal Sewer">Municipal Sewer</div>
+          <div class="pill" data-val="Septic System">Septic</div>
+          <div class="pill" data-val="Holding Tank">Holding Tank</div>
+          <div class="pill" data-val="Composting">Composting</div>
+        </div>
+
+        <label class="form-label">Electrical</label>
+        <div class="pill-group" id="elec-type">
+          <div class="pill" data-val="Overhead">Overhead</div>
+          <div class="pill" data-val="Underground">Underground</div>
+        </div>
+
+        <label class="form-label">Other Services</label>
+        <div class="pill-group" id="other-services">
+          <div class="pill" data-val="Natural Gas">Natural Gas</div>
+          <div class="pill" data-val="Propane">Propane</div>
+          <div class="pill" data-val="Oil">Oil</div>
+          <div class="pill" data-val="Streetlights">Streetlights</div>
+          <div class="pill" data-val="Sidewalk">Sidewalk</div>
+          <div class="pill" data-val="Curbs">Curbs</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 2: OWNER Q&A -->
+  <div id="phase2" class="content hidden">
+
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-ageinfo')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-ageinfo"></div>
+          Age & Build Info
+        </div>
+        <div class="section-chevron" id="chev-ageinfo">▼</div>
+      </div>
+      <div class="section-body" id="s-ageinfo">
+        <label class="form-label">Year Built (per owner)</label>
+        <input class="inline-input" id="year-built" type="number" placeholder="1985" inputmode="numeric">
+
+        <label class="form-label">Year Additions / Renovations</label>
+        <input class="inline-input" id="year-additions" type="text" placeholder="Addition 1998, Reno 2017...">
+
+        <label class="form-label">Permits pulled for work?</label>
+        <div class="yn-group" id="permits-yn">
+          <div class="yn-btn yes" data-val="Yes">Yes</div>
+          <div class="yn-btn no" data-val="No">No</div>
+          <div class="yn-btn" data-val="Unknown">Unknown</div>
+        </div>
+
+        <label class="form-label">Any known defects or issues?</label>
+        <textarea class="notes-input" id="known-defects" placeholder="Owner-reported issues, past repairs, known problems..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-mechanical')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-mechanical"></div>
+          Mechanical Systems
+        </div>
+        <div class="section-chevron" id="chev-mechanical">▼</div>
+      </div>
+      <div class="section-body" id="s-mechanical">
+        <label class="form-label">Heating System Type</label>
+        <div class="pill-group" id="heat-type">
+          <div class="pill" data-val="Ductless Heat Pump">Ductless HP</div>
+          <div class="pill" data-val="Ducted Heat Pump">Ducted HP</div>
+          <div class="pill" data-val="Baseboard Electric">Baseboard/Elec</div>
+          <div class="pill" data-val="In-Floor Electric">In-Floor/Elec</div>
+          <div class="pill" data-val="Forced Air / Oil">Forced Air/Oil</div>
+          <div class="pill" data-val="Forced Air / Gas">Forced Air/Gas</div>
+          <div class="pill" data-val="Hot Water Baseboard / Oil">HW Baseboard/Oil</div>
+          <div class="pill" data-val="Hot Water Baseboard / Gas">HW Baseboard/Gas</div>
+          <div class="pill" data-val="Radiant In-Floor">Radiant In-Floor</div>
+          <div class="pill" data-val="Wood Stove">Wood Stove</div>
+          <div class="pill" data-val="Propane">Propane</div>
+          <div class="pill" data-val="None">None</div>
+        </div>
+
+        <label class="form-label">Heating System Age / Year</label>
+        <input class="inline-input" id="heat-age" type="text" placeholder="2018 or ~10 years old">
+
+        <label class="form-label">Cooling System</label>
+        <div class="pill-group" id="cool-type">
+          <div class="pill" data-val="Ductless Heat Pump">Ductless HP</div>
+          <div class="pill" data-val="Central AC">Central AC</div>
+          <div class="pill" data-val="Window Unit">Window Unit</div>
+          <div class="pill" data-val="None">None</div>
+        </div>
+
+        <label class="form-label">Water Heater Fuel</label>
+        <div class="pill-group" id="hwt-fuel">
+          <div class="pill" data-val="Electric">Electric</div>
+          <div class="pill" data-val="Oil">Oil</div>
+          <div class="pill" data-val="Gas">Gas</div>
+          <div class="pill" data-val="Propane">Propane</div>
+          <div class="pill" data-val="Heat Pump HWT">Heat Pump HWT</div>
+          <div class="pill" data-val="Tankless">Tankless</div>
+        </div>
+
+        <label class="form-label">Water Heater Age / Year</label>
+        <input class="inline-input" id="hwt-age" type="text" placeholder="2020 or ~5 years old">
+
+        <label class="form-label">Panel Capacity (amps)</label>
+        <div class="pill-group" id="panel-amps">
+          <div class="pill" data-val="60">60A</div>
+          <div class="pill" data-val="100">100A</div>
+          <div class="pill" data-val="200">200A</div>
+          <div class="pill" data-val="400">400A</div>
+        </div>
+
+        <label class="form-label">Panel Type</label>
+        <div class="pill-group" id="panel-type">
+          <div class="pill" data-val="Breakers">Breakers</div>
+          <div class="pill" data-val="Fuses">Fuses</div>
+        </div>
+
+        <label class="form-label">HRV / Ventilator</label>
+        <div class="yn-group" id="hrv-yn">
+          <div class="yn-btn yes" data-val="Yes">Yes</div>
+          <div class="yn-btn no" data-val="No">No</div>
+        </div>
+
+        <label class="form-label">Plumbing Lines</label>
+        <div class="pill-group" id="plumbing">
+          <div class="pill" data-val="Copper">Copper</div>
+          <div class="pill" data-val="PEX">PEX</div>
+          <div class="pill" data-val="PVC">PVC</div>
+          <div class="pill" data-val="ABS">ABS</div>
+          <div class="pill" data-val="Galvanized">Galvanized</div>
+          <div class="pill" data-val="Polybutylene">Polybutylene</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-updates')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-updates"></div>
+          Updates & Renovations
+        </div>
+        <div class="section-chevron" id="chev-updates">▼</div>
+      </div>
+      <div class="section-body" id="s-updates">
+        <label class="form-label">Roof Age / Year Replaced</label>
+        <input class="inline-input" id="roof-age" type="text" placeholder="2019 or ~6 years old">
+
+        <label class="form-label">Windows Age / Year Replaced</label>
+        <input class="inline-input" id="windows-age" type="text" placeholder="2017 or original">
+
+        <label class="form-label">Kitchen Updated</label>
+        <div class="yn-group" id="kitchen-updated">
+          <div class="yn-btn yes" data-val="Yes">Yes</div>
+          <div class="yn-btn no" data-val="No">No</div>
+        </div>
+        <input class="inline-input" id="kitchen-year" type="text" placeholder="Year of kitchen update" style="margin-top: 8px;">
+
+        <label class="form-label">Bathrooms Updated</label>
+        <div class="yn-group" id="bath-updated">
+          <div class="yn-btn yes" data-val="Yes">Yes</div>
+          <div class="yn-btn no" data-val="No">No</div>
+        </div>
+        <input class="inline-input" id="bath-year" type="text" placeholder="Year of bathroom update" style="margin-top: 8px;">
+
+        <label class="form-label">Other Significant Updates</label>
+        <textarea class="notes-input" id="other-updates" placeholder="Foundation waterproofing, electrical upgrade, addition, etc. with years..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-well-septic')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-well-septic"></div>
+          Well & Septic (if applicable)
+        </div>
+        <div class="section-chevron" id="chev-well-septic">▼</div>
+      </div>
+      <div class="section-body" id="s-well-septic">
+        <label class="form-label">Well Type</label>
+        <div class="pill-group" id="well-type">
+          <div class="pill" data-val="N/A - Municipal">N/A (Municipal)</div>
+          <div class="pill" data-val="Drilled">Drilled</div>
+          <div class="pill" data-val="Dug">Dug</div>
+          <div class="pill" data-val="Lake Intake">Lake Intake</div>
+        </div>
+
+        <label class="form-label">Well Age / Year Drilled</label>
+        <input class="inline-input" id="well-age" type="text" placeholder="2005 or unknown">
+
+        <label class="form-label">Last Water Test</label>
+        <input class="inline-input" id="water-test" type="text" placeholder="2023 — passed / unknown">
+
+        <label class="form-label">Septic Type</label>
+        <div class="pill-group" id="septic-type">
+          <div class="pill" data-val="N/A - Municipal Sewer">N/A (Municipal)</div>
+          <div class="pill" data-val="Conventional Septic">Conventional</div>
+          <div class="pill" data-val="Holding Tank">Holding Tank</div>
+          <div class="pill" data-val="Mound System">Mound System</div>
+          <div class="pill" data-val="Composting">Composting</div>
+        </div>
+
+        <label class="form-label">Septic Last Pumped</label>
+        <input class="inline-input" id="septic-pumped" type="text" placeholder="2022 or unknown">
+
+        <label class="form-label">Well / Septic Notes</label>
+        <textarea class="notes-input" id="well-notes" placeholder="Owner-reported issues, pump age, flow rate if known..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-extras')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-extras"></div>
+          Built-ins & Extras
+        </div>
+        <div class="section-chevron" id="chev-extras">▼</div>
+      </div>
+      <div class="section-body" id="s-extras">
+        <label class="form-label">Built-in Appliances</label>
+        <div class="pill-group" id="builtins">
+          <div class="pill" data-val="Dishwasher">Dishwasher</div>
+          <div class="pill" data-val="Microwave">Microwave</div>
+          <div class="pill" data-val="Cooktop">Cooktop</div>
+          <div class="pill" data-val="Wall Oven">Wall Oven</div>
+          <div class="pill" data-val="Fridge">Fridge</div>
+          <div class="pill" data-val="Stove/Range">Stove/Range</div>
+          <div class="pill" data-val="Washer">Washer</div>
+          <div class="pill" data-val="Dryer">Dryer</div>
+        </div>
+
+        <label class="form-label">Extras</label>
+        <div class="pill-group" id="extras">
+          <div class="pill" data-val="Security System">Security System</div>
+          <div class="pill" data-val="Central Vac">Central Vac</div>
+          <div class="pill" data-val="Generator">Generator</div>
+          <div class="pill" data-val="Water Softener">Water Softener</div>
+          <div class="pill" data-val="Electric Fireplace">Electric Fireplace</div>
+          <div class="pill" data-val="Gas Fireplace">Gas Fireplace</div>
+          <div class="pill" data-val="Wood Stove">Wood Stove</div>
+          <div class="pill" data-val="Solar Panels">Solar Panels</div>
+          <div class="pill" data-val="EV Charger">EV Charger</div>
+          <div class="pill" data-val="Hot Tub">Hot Tub</div>
+          <div class="pill" data-val="Pool">Pool</div>
+        </div>
+
+        <label class="form-label">General Notes from Owner</label>
+        <textarea class="notes-input" id="owner-notes" placeholder="Anything else the owner mentioned..."></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 3: INTERIOR -->
+  <div id="phase3" class="content hidden">
+
+    <!-- Floors container -->
+    <div id="floors-container"></div>
+    <button class="add-floor-btn" onclick="addFloor()">+ Add Floor / Level</button>
+
+    <!-- Interior Finishes (global) -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-finishes')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-finishes"></div>
+          Interior Finishes (Overall)
+        </div>
+        <div class="section-chevron" id="chev-finishes">▼</div>
+      </div>
+      <div class="section-body" id="s-finishes">
+        <label class="form-label">Wall Finish</label>
+        <div class="pill-group" id="wall-finish">
+          <div class="pill" data-val="Drywall">Drywall</div>
+          <div class="pill" data-val="Plaster">Plaster</div>
+          <div class="pill" data-val="Wood Plank">Wood Plank</div>
+          <div class="pill" data-val="Paneling">Paneling</div>
+          <div class="pill" data-val="Mixed">Mixed</div>
+        </div>
+
+        <label class="form-label">Ceiling Finish</label>
+        <div class="pill-group" id="ceil-finish">
+          <div class="pill" data-val="Drywall">Drywall</div>
+          <div class="pill" data-val="Plaster">Plaster</div>
+          <div class="pill" data-val="Wood Plank">Wood Plank</div>
+          <div class="pill" data-val="Suspended">Suspended/Drop</div>
+          <div class="pill" data-val="Exposed">Exposed</div>
+          <div class="pill" data-val="Cathedral">Cathedral</div>
+          <div class="pill" data-val="Vaulted">Vaulted</div>
+        </div>
+
+        <label class="form-label">Flooring Types (select all present)</label>
+        <div class="pill-group" id="flooring">
+          <div class="pill" data-val="Hardwood">Hardwood</div>
+          <div class="pill" data-val="Engineered Hardwood">Engineered HW</div>
+          <div class="pill" data-val="Laminate">Laminate</div>
+          <div class="pill" data-val="Vinyl Plank (LVP)">LVP</div>
+          <div class="pill" data-val="Vinyl Sheet">Vinyl Sheet</div>
+          <div class="pill" data-val="Tile">Tile</div>
+          <div class="pill" data-val="Carpet">Carpet</div>
+          <div class="pill" data-val="Concrete">Concrete</div>
+          <div class="pill" data-val="Wood Plank (Unfinished)">Wood Plank (Unfin.)</div>
+        </div>
+
+        <label class="form-label">Overall Interior Condition</label>
+        <div class="condition-group" id="int-cond">
+          <div class="cond-btn" data-val="Good">Good</div>
+          <div class="cond-btn" data-val="Average">Average</div>
+          <div class="cond-btn" data-val="Fair">Fair</div>
+          <div class="cond-btn" data-val="Poor">Poor</div>
+        </div>
+
+        <label class="form-label">Kitchen Countertops</label>
+        <div class="pill-group" id="countertops">
+          <div class="pill" data-val="Granite">Granite</div>
+          <div class="pill" data-val="Quartz">Quartz</div>
+          <div class="pill" data-val="Laminate">Laminate</div>
+          <div class="pill" data-val="Butcher Block">Butcher Block</div>
+          <div class="pill" data-val="Corian">Corian</div>
+          <div class="pill" data-val="Tile">Tile</div>
+        </div>
+
+        <label class="form-label">Interior Notes</label>
+        <textarea class="notes-input" id="int-notes" placeholder="Overall quality, notable features, deferred maintenance..."></textarea>
+      </div>
+    </div>
+
+    <!-- Basement -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-basement')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-basement"></div>
+          Basement
+        </div>
+        <div class="section-chevron" id="chev-basement">▼</div>
+      </div>
+      <div class="section-body" id="s-basement">
+        <label class="form-label">Basement Type</label>
+        <div class="pill-group" id="bsmt-type">
+          <div class="pill" data-val="Full">Full</div>
+          <div class="pill" data-val="Partial">Partial</div>
+          <div class="pill" data-val="Crawl Space">Crawl Space</div>
+          <div class="pill" data-val="Slab (No Basement)">Slab</div>
+          <div class="pill" data-val="None">None</div>
+        </div>
+
+        <label class="form-label">Basement Finish</label>
+        <div class="pill-group" id="bsmt-finish">
+          <div class="pill" data-val="Unfinished">Unfinished</div>
+          <div class="pill" data-val="Partially Finished">Partially Fin.</div>
+          <div class="pill" data-val="Fully Finished">Fully Fin.</div>
+        </div>
+
+        <label class="form-label">Walkout</label>
+        <div class="yn-group" id="walkout-yn">
+          <div class="yn-btn yes" data-val="Yes">Yes</div>
+          <div class="yn-btn no" data-val="No">No</div>
+        </div>
+
+        <label class="form-label">Basement Rooms (if finished)</label>
+        <div class="pill-group" id="bsmt-rooms">
+          <div class="pill" data-val="Rec Room">Rec Room</div>
+          <div class="pill" data-val="Bedroom">Bedroom</div>
+          <div class="pill" data-val="Bathroom">Bathroom</div>
+          <div class="pill" data-val="Office">Office</div>
+          <div class="pill" data-val="Laundry">Laundry</div>
+          <div class="pill" data-val="Storage">Storage</div>
+          <div class="pill" data-val="Mechanical Room">Mechanical</div>
+        </div>
+
+        <label class="form-label">Basement Condition</label>
+        <div class="condition-group" id="bsmt-cond">
+          <div class="cond-btn" data-val="Good">Good</div>
+          <div class="cond-btn" data-val="Average">Average</div>
+          <div class="cond-btn" data-val="Fair">Fair</div>
+          <div class="cond-btn" data-val="Poor">Poor</div>
+        </div>
+
+        <label class="form-label">Basement Notes</label>
+        <textarea class="notes-input" id="bsmt-notes" placeholder="Ceiling height, moisture, non-egress windows, plumbed for bath, etc..."></textarea>
+      </div>
+    </div>
+
+    <!-- General Notes -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection('s-gennotes')">
+        <div class="section-title">
+          <div class="section-dot" id="dot-gennotes"></div>
+          General Notes / Catch-All
+        </div>
+        <div class="section-chevron" id="chev-gennotes">▼</div>
+      </div>
+      <div class="section-body" id="s-gennotes">
+        <textarea class="notes-input" id="gen-notes" placeholder="Anything that didn't fit elsewhere — unusual features, access issues, things to follow up on..." style="min-height: 120px;"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 4: MEASUREMENTS -->
+  <div id="phase4" class="content hidden">
+
+    <div style="margin-bottom: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+      <div style="font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Sketch Canvas</div>
+      <div style="font-size: 13px; color: var(--text3);">Draw with Apple Pencil. Write dimensions on the walls. One canvas per floor.</div>
+    </div>
+
+    <div id="canvas-floors"></div>
+    <button class="add-floor-btn" onclick="addCanvasFloor()">+ Add Floor Canvas</button>
+
+    <div class="section-card" style="margin-top: 8px;">
+      <div class="section-header" onclick="toggleSection('s-sqft')">
+        <div class="section-title">
+          <div class="section-dot"></div>
+          Calculated Areas (enter at home)
+        </div>
+        <div class="section-chevron" id="chev-sqft">▼</div>
+      </div>
+      <div class="section-body" id="s-sqft">
+        <div style="font-size: 13px; color: var(--text3); margin-bottom: 16px;">Fill these in once you've calculated from your sketches.</div>
+        <div id="sqft-fields">
+          <div class="form-row">
+            <label class="form-label">Main Floor (sq ft)</label>
+            <input class="num-input" id="sqft-main" type="number" placeholder="0" inputmode="decimal">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Second Floor (sq ft)</label>
+            <input class="num-input" id="sqft-second" type="number" placeholder="0" inputmode="decimal">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Third Floor (sq ft)</label>
+            <input class="num-input" id="sqft-third" type="number" placeholder="0" inputmode="decimal">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Basement (sq ft)</label>
+            <input class="num-input" id="sqft-bsmt" type="number" placeholder="0" inputmode="decimal">
+          </div>
+        </div>
+        <div style="padding: 14px; background: var(--surface2); border-radius: 10px; margin-top: 8px;">
+          <div style="font-size: 12px; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Total Above Grade</div>
+          <div style="font-family: 'Courier New', monospace; font-size: 28px; font-weight: 600; color: var(--accent);" id="sqft-total">0 sq ft</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- OUTPUT MODAL -->
+<div class="modal-overlay" id="outputModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Inspection Output</span>
+      <span class="modal-close" onclick="closeModal()">✕</span>
+    </div>
+    <div class="output-block" id="outputText"></div>
+    <div class="modal-actions">
+      <button class="btn-copy" onclick="copyOutput()">Copy to Clipboard</button>
+      <button class="btn-share" onclick="shareOutput()">Share / Dropbox ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  filenum: '', address: '', city: '', date: '', assignmentType: '',
+  // Phase 1
+  propType: '', propStyle: '', propConstruction: '',
+  extFinish: [], extCond: '', roofType: '', roofCond: '', extNotes: '',
+  foundationType: '', windowType: '', windowGlazing: '', windowStyle: '',
+  driveway: '', garage: '', siteFeatures: [], roadType: '', landscaping: '', topography: '', siteNotes: '',
+  waterSupply: '', sewage: '', elecType: '', otherServices: [],
+  // Phase 2
+  yearBuilt: '', yearAdditions: '', permitsYN: '', knownDefects: '',
+  heatType: [], heatAge: '', coolType: '', hwtFuel: '', hwtAge: '',
+  panelAmps: '', panelType: '', hrvYN: '', plumbing: [],
+  roofAge: '', windowsAge: '', kitchenUpdated: '', kitchenYear: '', bathUpdated: '', bathYear: '', otherUpdates: '',
+  wellType: '', wellAge: '', waterTest: '', septicType: '', septicPumped: '', wellNotes: '',
+  builtins: [], extras: [], ownerNotes: '',
+  // Phase 3
+  floors: [],
+  wallFinish: '', ceilFinish: '', flooring: [], intCond: '', countertops: '', intNotes: '',
+  bsmtType: '', bsmtFinish: '', walkoutYN: '', bsmtRooms: [], bsmtCond: '', bsmtNotes: '',
+  genNotes: '',
+  // Phase 4
+  sqftMain: '', sqftSecond: '', sqftThird: '', sqftBsmt: ''
+};
+
+let floorCount = 0;
+let canvasFloorCount = 0;
+let canvases = {};
+let currentPhase = 1;
+
+// ─── SETUP ───────────────────────────────────────────────────────────────────
+function startInspection() {
+  state.filenum = document.getElementById('setup-filenum').value || 'No File #';
+  state.address = document.getElementById('setup-address').value || 'No Address';
+  state.city = document.getElementById('setup-city').value || '';
+  state.date = document.getElementById('setup-date').value || new Date().toISOString().split('T')[0];
+
+  document.getElementById('hdr-filenum').textContent = state.filenum;
+  document.getElementById('hdr-address').textContent = state.address + (state.city ? ', ' + state.city : '');
+
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+
+  // Add default floors
+  addFloor('Main Floor');
+  addCanvasFloor('Main Floor');
+
+  showPhase(1);
+}
+
+function showSetup() {
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+}
+
+// ─── PHASE NAVIGATION ────────────────────────────────────────────────────────
+function showPhase(n) {
+  currentPhase = n;
+  ['phase1','phase2','phase3','phase4'].forEach((id, i) => {
+    document.getElementById(id).classList.toggle('hidden', i + 1 !== n);
+  });
+  ['tab-p1','tab-p2','tab-p3','tab-p4'].forEach((id, i) => {
+    const tab = document.getElementById(id);
+    tab.className = 'phase-tab';
+    if (i + 1 === n) {
+      const cls = ['active-p1','active-p2','active-p3','active-p1'][i];
+      tab.className = 'phase-tab ' + cls;
+    }
+  });
+}
+
+// ─── SECTION TOGGLE ──────────────────────────────────────────────────────────
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+
+  // Find chevron — handles s-xxx, floor-body-N, canvas-body-N patterns
+  let chevId = null;
+  if (id.startsWith('s-')) chevId = id.replace('s-', 'chev-');
+  else if (id.startsWith('floor-body-')) chevId = id.replace('floor-body-', 'floor-chev-');
+  else if (id.startsWith('canvas-body-')) chevId = id.replace('canvas-body-', 'canvas-chev-');
+
+  const chev = chevId ? document.getElementById(chevId) : null;
+  if (chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// ─── PILL / BUTTON SELECTORS ─────────────────────────────────────────────────
+function initPills(containerId, stateKey, multi = false) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const val = pill.dataset.val;
+      const phase = currentPhase;
+      const cls = phase <= 1 ? 'selected-p1' : phase === 2 ? 'selected-p2' : 'selected-p3';
+
+      if (multi) {
+        pill.classList.toggle(cls);
+        if (!Array.isArray(state[stateKey])) state[stateKey] = [];
+        if (pill.classList.contains(cls)) {
+          state[stateKey].push(val);
+        } else {
+          state[stateKey] = state[stateKey].filter(v => v !== val);
+        }
+      } else {
+        container.querySelectorAll('.pill').forEach(p => p.className = 'pill');
+        pill.classList.add(cls);
+        state[stateKey] = val;
+      }
+      autoSave();
+    });
+  });
+}
+
+function initCondition(containerId, stateKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.cond-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      state[stateKey] = btn.dataset.val;
+      autoSave();
+    });
+  });
+}
+
+function initYN(containerId, stateKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.yn-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      state[stateKey] = btn.dataset.val;
+      autoSave();
+    });
+  });
+}
+
+function initText(id, stateKey) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => { state[stateKey] = el.value; autoSave(); });
+}
+
+// ─── FLOORS ──────────────────────────────────────────────────────────────────
+const floorNames = ['Main Floor', 'Second Floor', 'Third Floor', 'Fourth Floor', 'In-Law Suite', 'Loft'];
+
+function addFloor(name) {
+  const idx = floorCount++;
+  const floorName = name || floorNames[idx] || `Floor ${idx + 1}`;
+  state.floors.push({ name: floorName, rooms: [], baths: [], notes: '' });
+
+  const container = document.getElementById('floors-container');
+  const block = document.createElement('div');
+  block.className = 'section-card';
+  block.id = `floor-card-${idx}`;
+  block.innerHTML = `
+    <div class="section-header" onclick="toggleSection('floor-body-${idx}')">
+      <div class="section-title">
+        <div class="section-dot" id="floor-dot-${idx}"></div>
+        ${floorName}
+      </div>
+      <div class="section-chevron" id="floor-chev-${idx}">▼</div>
+    </div>
+    <div class="section-body" id="floor-body-${idx}">
+      <label class="form-label">Rooms Present</label>
+      <div class="room-grid" id="rooms-${idx}">
+        ${['Entrance','Living Room','Dining Room','Kitchen','Family Room','Den/Office','Sunroom','Mudroom','Pantry','Laundry'].map(r =>
+          `<div class="room-chip" data-room="${r}" onclick="toggleRoom(this, ${idx})">${r}</div>`
+        ).join('')}
+      </div>
+      <label class="form-label">Bathrooms</label>
+      <div class="bath-row" id="baths-${idx}">
+        ${['2-Piece','3-Piece','4-Piece','5-Piece','Ensuite 3pc','Ensuite 4pc','Ensuite 5pc'].map(b =>
+          `<div class="bath-chip" data-bath="${b}" onclick="toggleBath(this, ${idx})">${b}</div>`
+        ).join('')}
+      </div>
+      <label class="form-label">Ceiling Height</label>
+      <div class="pill-group" id="ceil-ht-${idx}">
+        ${["8'","9'","10'","12' (Cathedral)","Variable","Low (< 8')"].map(h =>
+          `<div class="pill" data-val="${h}" onclick="setCeilHt(this, ${idx})">${h}</div>`
+        ).join('')}
+      </div>
+      <label class="form-label">Floor Notes</label>
+      <textarea class="notes-input" id="floor-notes-${idx}" placeholder="Room sizes, finishes, notable features on this floor..." onchange="state.floors[${idx}].notes = this.value; autoSave();"></textarea>
+    </div>`;
+  container.appendChild(block);
+
+  // Auto-open first floor
+  if (idx === 0) toggleSection(`floor-body-${idx}`);
+}
+
+function toggleRoom(el, idx) {
+  el.classList.toggle('on');
+  const room = el.dataset.room;
+  const arr = state.floors[idx].rooms;
+  if (el.classList.contains('on')) { arr.push(room); }
+  else { state.floors[idx].rooms = arr.filter(r => r !== room); }
+  autoSave();
+}
+
+function toggleBath(el, idx) {
+  el.classList.toggle('on');
+  const bath = el.dataset.bath;
+  const arr = state.floors[idx].baths;
+  if (el.classList.contains('on')) { arr.push(bath); }
+  else { state.floors[idx].baths = arr.filter(b => b !== bath); }
+  autoSave();
+}
+
+function setCeilHt(el, idx) {
+  const group = el.closest('.pill-group');
+  group.querySelectorAll('.pill').forEach(p => p.className = 'pill');
+  el.className = 'pill selected-p3';
+  state.floors[idx].ceilHt = el.dataset.val;
+  autoSave();
+}
+
+// ─── CANVAS FLOORS ───────────────────────────────────────────────────────────
+function addCanvasFloor(name) {
+  const idx = canvasFloorCount++;
+  const floorName = name || floorNames[idx] || `Floor ${idx + 1}`;
+
+  const container = document.getElementById('canvas-floors');
+  const block = document.createElement('div');
+  block.className = 'section-card';
+  block.style.marginBottom = '16px';
+  block.innerHTML = `
+    <div class="section-header" onclick="toggleSection('canvas-body-${idx}')">
+      <div class="section-title">
+        <div class="section-dot filled"></div>
+        ${floorName} — Sketch
+      </div>
+      <div class="section-chevron" id="canvas-chev-${idx}">▼</div>
+    </div>
+    <div class="section-body" id="canvas-body-${idx}">
+      <div class="canvas-toolbar">
+        <button class="canvas-btn active" id="tool-pen-${idx}" onclick="setTool('pen', ${idx})">✏️ Pen</button>
+        <button class="canvas-btn" id="tool-text-${idx}" onclick="setTool('text', ${idx})">T Text</button>
+        <button class="canvas-btn" id="tool-erase-${idx}" onclick="setTool('erase', ${idx})">◻ Erase</button>
+        <button class="canvas-btn danger" onclick="clearCanvas(${idx})">✕ Clear</button>
+      </div>
+      <div class="canvas-container">
+        <canvas id="canvas-${idx}" width="660" height="500" style="width:100%; height:auto; background:#fff; border-radius: 10px;"></canvas>
+      </div>
+    </div>`;
+  container.appendChild(block);
+
+  if (idx === 0) toggleSection(`canvas-body-${idx}`);
+
+  setTimeout(() => initCanvas(idx), 100);
+}
+
+let tools = {};
+
+function setTool(tool, idx) {
+  tools[idx] = tool;
+  ['pen','text','erase'].forEach(t => {
+    const btn = document.getElementById(`tool-${t}-${idx}`);
+    if (btn) btn.classList.toggle('active', t === tool);
+  });
+}
+
+function initCanvas(idx) {
+  const canvas = document.getElementById(`canvas-${idx}`);
+  if (!canvas) return;
+
+  tools[idx] = 'pen';
+  const ctx = canvas.getContext('2d');
+  canvases[idx] = { canvas, ctx, drawing: false, lastX: 0, lastY: 0 };
+
+  ctx.strokeStyle = '#1a1a2e';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const touch = e.touches ? e.touches[0] : e;
+    return {
+      x: (touch.clientX - rect.left) * scaleX,
+      y: (touch.clientY - rect.top) * scaleY
+    };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    const { x, y } = getPos(e);
+    const tool = tools[idx];
+    const c = canvases[idx];
+    c.drawing = true;
+    c.lastX = x;
+    c.lastY = y;
+
+    if (tool === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 20;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = '#1a1a2e';
+      ctx.lineWidth = 2;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function draw(e) {
+    e.preventDefault();
+    const c = canvases[idx];
+    if (!c.drawing) return;
+    const { x, y } = getPos(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    c.lastX = x;
+    c.lastY = y;
+  }
+
+  function stopDraw(e) {
+    e.preventDefault();
+    canvases[idx].drawing = false;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.lineWidth = 2;
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', draw, { passive: false });
+  canvas.addEventListener('touchend', stopDraw, { passive: false });
+}
+
+function clearCanvas(idx) {
+  const c = canvases[idx];
+  if (!c) return;
+  c.ctx.clearRect(0, 0, c.canvas.width, c.canvas.height);
+}
+
+// ─── SQFT TOTAL ──────────────────────────────────────────────────────────────
+['sqft-main','sqft-second','sqft-third'].forEach(id => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateTotal);
+  });
+});
+
+function updateTotal() {
+  const main = parseFloat(document.getElementById('sqft-main')?.value) || 0;
+  const second = parseFloat(document.getElementById('sqft-second')?.value) || 0;
+  const third = parseFloat(document.getElementById('sqft-third')?.value) || 0;
+  const total = main + second + third;
+  const el = document.getElementById('sqft-total');
+  if (el) el.textContent = total.toLocaleString() + ' sq ft';
+}
+
+// ─── AUTO SAVE ───────────────────────────────────────────────────────────────
+function autoSave() {
+  try { localStorage.setItem('inspection_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ─── OUTPUT GENERATION ────────────────────────────────────────────────────────
+function generateOutput() {
+  // Pull latest text fields
+  state.extNotes = document.getElementById('ext-notes')?.value || '';
+  state.siteNotes = document.getElementById('site-notes')?.value || '';
+  state.yearBuilt = document.getElementById('year-built')?.value || '';
+  state.yearAdditions = document.getElementById('year-additions')?.value || '';
+  state.knownDefects = document.getElementById('known-defects')?.value || '';
+  state.heatAge = document.getElementById('heat-age')?.value || '';
+  state.hwtAge = document.getElementById('hwt-age')?.value || '';
+  state.roofAge = document.getElementById('roof-age')?.value || '';
+  state.windowsAge = document.getElementById('windows-age')?.value || '';
+  state.kitchenYear = document.getElementById('kitchen-year')?.value || '';
+  state.bathYear = document.getElementById('bath-year')?.value || '';
+  state.otherUpdates = document.getElementById('other-updates')?.value || '';
+  state.wellAge = document.getElementById('well-age')?.value || '';
+  state.waterTest = document.getElementById('water-test')?.value || '';
+  state.septicPumped = document.getElementById('septic-pumped')?.value || '';
+  state.wellNotes = document.getElementById('well-notes')?.value || '';
+  state.ownerNotes = document.getElementById('owner-notes')?.value || '';
+  state.intNotes = document.getElementById('int-notes')?.value || '';
+  state.bsmtNotes = document.getElementById('bsmt-notes')?.value || '';
+  state.genNotes = document.getElementById('gen-notes')?.value || '';
+  state.sqftMain = document.getElementById('sqft-main')?.value || '';
+  state.sqftSecond = document.getElementById('sqft-second')?.value || '';
+  state.sqftThird = document.getElementById('sqft-third')?.value || '';
+  state.sqftBsmt = document.getElementById('sqft-bsmt')?.value || '';
+
+  const lines = [];
+  const s = state;
+
+  lines.push(`INSPECTION NOTES — FILE ${s.filenum}`);
+  lines.push(`${s.address}${s.city ? ', ' + s.city : ''}`);
+  lines.push(`Date: ${s.date}    Assignment: ${s.assignmentType}`);
+  lines.push('═'.repeat(50));
+
+  lines.push('\n── PROPERTY TYPE ──');
+  if (s.propType) lines.push(`Type: ${s.propType}`);
+  if (s.propStyle) lines.push(`Style: ${s.propStyle}`);
+  if (s.propConstruction) lines.push(`Construction: ${s.propConstruction}`);
+
+  lines.push('\n── EXTERIOR ──');
+  if (s.extFinish?.length) lines.push(`Exterior Finish: ${[].concat(s.extFinish).join(', ')}`);
+  if (s.extCond) lines.push(`Exterior Condition: ${s.extCond}`);
+  if (s.roofType) lines.push(`Roofing: ${s.roofType}`);
+  if (s.roofCond) lines.push(`Roof Condition: ${s.roofCond}`);
+  if (s.extNotes) lines.push(`Notes: ${s.extNotes}`);
+
+  lines.push('\n── FOUNDATION & WINDOWS ──');
+  if (s.foundationType) lines.push(`Foundation: ${s.foundationType}`);
+  if (s.windowType) lines.push(`Windows: ${s.windowType}${s.windowGlazing ? ' — ' + s.windowGlazing : ''}${s.windowStyle ? ' — ' + s.windowStyle : ''}`);
+
+  lines.push('\n── SITE ──');
+  if (s.driveway) lines.push(`Driveway: ${s.driveway}`);
+  if (s.garage) lines.push(`Garage/Parking: ${s.garage}`);
+  if (s.siteFeatures?.length) lines.push(`Site Features: ${[].concat(s.siteFeatures).join(', ')}`);
+  if (s.roadType) lines.push(`Road: ${s.roadType}`);
+  if (s.landscaping) lines.push(`Landscaping: ${s.landscaping}`);
+  if (s.topography) lines.push(`Topography: ${s.topography}`);
+  if (s.siteNotes) lines.push(`Notes: ${s.siteNotes}`);
+
+  lines.push('\n── SERVICES ──');
+  if (s.waterSupply) lines.push(`Water: ${s.waterSupply}`);
+  if (s.sewage) lines.push(`Sewage: ${s.sewage}`);
+  if (s.elecType) lines.push(`Electrical: ${s.elecType}`);
+  if (s.otherServices?.length) lines.push(`Other: ${[].concat(s.otherServices).join(', ')}`);
+
+  lines.push('\n── AGE & BUILD INFO ──');
+  if (s.yearBuilt) lines.push(`Year Built: ${s.yearBuilt}`);
+  if (s.yearAdditions) lines.push(`Additions/Renos: ${s.yearAdditions}`);
+  if (s.permitsYN) lines.push(`Permits: ${s.permitsYN}`);
+  if (s.knownDefects) lines.push(`Known Defects: ${s.knownDefects}`);
+
+  lines.push('\n── MECHANICAL ──');
+  if (s.heatType?.length) lines.push(`Heating: ${[].concat(s.heatType).join(' + ')}`);
+  if (s.heatAge) lines.push(`Heating Age: ${s.heatAge}`);
+  if (s.coolType) lines.push(`Cooling: ${s.coolType}`);
+  if (s.hwtFuel) lines.push(`HWT Fuel: ${s.hwtFuel}${s.hwtAge ? '  |  Age: ' + s.hwtAge : ''}`);
+  if (s.panelAmps) lines.push(`Panel: ${s.panelAmps}A${s.panelType ? ' — ' + s.panelType : ''}`);
+  if (s.hrvYN === 'Yes') lines.push(`HRV: Yes`);
+  if (s.plumbing?.length) lines.push(`Plumbing: ${[].concat(s.plumbing).join(', ')}`);
+
+  lines.push('\n── UPDATES ──');
+  if (s.roofAge) lines.push(`Roof Age/Year: ${s.roofAge}`);
+  if (s.windowsAge) lines.push(`Windows Age/Year: ${s.windowsAge}`);
+  if (s.kitchenUpdated) lines.push(`Kitchen Updated: ${s.kitchenUpdated}${s.kitchenYear ? ' (' + s.kitchenYear + ')' : ''}`);
+  if (s.bathUpdated) lines.push(`Bathrooms Updated: ${s.bathUpdated}${s.bathYear ? ' (' + s.bathYear + ')' : ''}`);
+  if (s.otherUpdates) lines.push(`Other: ${s.otherUpdates}`);
+
+  if (s.wellType && s.wellType !== 'N/A - Municipal') {
+    lines.push('\n── WELL & SEPTIC ──');
+    if (s.wellType) lines.push(`Well: ${s.wellType}${s.wellAge ? '  |  Year: ' + s.wellAge : ''}`);
+    if (s.waterTest) lines.push(`Last Water Test: ${s.waterTest}`);
+    if (s.septicType) lines.push(`Septic: ${s.septicType}${s.septicPumped ? '  |  Last Pumped: ' + s.septicPumped : ''}`);
+    if (s.wellNotes) lines.push(`Notes: ${s.wellNotes}`);
+  }
+
+  if (s.builtins?.length || s.extras?.length) {
+    lines.push('\n── BUILT-INS & EXTRAS ──');
+    if (s.builtins?.length) lines.push(`Built-ins: ${[].concat(s.builtins).join(', ')}`);
+    if (s.extras?.length) lines.push(`Extras: ${[].concat(s.extras).join(', ')}`);
+  }
+  if (s.ownerNotes) lines.push(`Owner Notes: ${s.ownerNotes}`);
+
+  lines.push('\n── ROOM ALLOCATION ──');
+  s.floors.forEach((floor, i) => {
+    lines.push(`${floor.name}:`);
+    if (floor.rooms?.length) lines.push(`  Rooms: ${floor.rooms.join(', ')}`);
+    if (floor.baths?.length) lines.push(`  Baths: ${floor.baths.join(', ')}`);
+    if (floor.ceilHt) lines.push(`  Ceiling: ${floor.ceilHt}`);
+    const noteEl = document.getElementById(`floor-notes-${i}`);
+    const note = noteEl?.value || floor.notes || '';
+    if (note) lines.push(`  Notes: ${note}`);
+  });
+
+  lines.push('\n── INTERIOR FINISHES ──');
+  if (s.wallFinish) lines.push(`Walls: ${s.wallFinish}`);
+  if (s.ceilFinish) lines.push(`Ceilings: ${s.ceilFinish}`);
+  if (s.flooring?.length) lines.push(`Flooring: ${[].concat(s.flooring).join(', ')}`);
+  if (s.intCond) lines.push(`Overall Interior Condition: ${s.intCond}`);
+  if (s.countertops) lines.push(`Countertops: ${s.countertops}`);
+  if (s.intNotes) lines.push(`Notes: ${s.intNotes}`);
+
+  lines.push('\n── BASEMENT ──');
+  if (s.bsmtType) lines.push(`Type: ${s.bsmtType}`);
+  if (s.bsmtFinish) lines.push(`Finish: ${s.bsmtFinish}`);
+  if (s.walkoutYN) lines.push(`Walkout: ${s.walkoutYN}`);
+  if (s.bsmtRooms?.length) lines.push(`Rooms: ${[].concat(s.bsmtRooms).join(', ')}`);
+  if (s.bsmtCond) lines.push(`Condition: ${s.bsmtCond}`);
+  if (s.bsmtNotes) lines.push(`Notes: ${s.bsmtNotes}`);
+
+  lines.push('\n── MEASUREMENTS (ABOVE GRADE) ──');
+  if (s.sqftMain) lines.push(`Main Floor: ${s.sqftMain} sq ft`);
+  if (s.sqftSecond) lines.push(`Second Floor: ${s.sqftSecond} sq ft`);
+  if (s.sqftThird) lines.push(`Third Floor: ${s.sqftThird} sq ft`);
+  if (s.sqftBsmt) lines.push(`Basement: ${s.sqftBsmt} sq ft`);
+  const abvGrade = (parseFloat(s.sqftMain)||0) + (parseFloat(s.sqftSecond)||0) + (parseFloat(s.sqftThird)||0);
+  if (abvGrade) lines.push(`Total Above Grade: ${abvGrade.toLocaleString()} sq ft`);
+
+  if (s.genNotes) {
+    lines.push('\n── GENERAL NOTES ──');
+    lines.push(s.genNotes);
+  }
+
+  lines.push('\n' + '─'.repeat(50));
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+
+  document.getElementById('outputText').textContent = lines.join('\n');
+  document.getElementById('outputModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('outputModal').classList.remove('open');
+}
+
+function copyOutput() {
+  const text = document.getElementById('outputText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2000);
+  });
+}
+
+function shareOutput() {
+  const text = document.getElementById('outputText').textContent;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const file = new File([blob], `Inspection_${state.filenum}_${state.date}.txt`, { type: 'text/plain' });
+
+  if (navigator.share && navigator.canShare({ files: [file] })) {
+    navigator.share({
+      files: [file],
+      title: `Inspection ${state.filenum}`,
+      text: `Field inspection notes — ${state.address}`
+    }).catch(console.error);
+  } else {
+    // Fallback: download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Inspection_${state.filenum}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ─── INIT ALL SELECTORS ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  document.getElementById('setup-date').value = new Date().toISOString().split('T')[0];
+
+  // Setup type pills
+  document.getElementById('setup-type').querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      document.getElementById('setup-type').querySelectorAll('.pill').forEach(x => x.className = 'pill');
+      p.className = 'pill selected-p1';
+      state.assignmentType = p.dataset.val;
+    });
+  });
+
+  // Phase 1
+  initPills('prop-type', 'propType');
+  initPills('prop-style', 'propStyle');
+  initPills('prop-construction', 'propConstruction');
+  initPills('ext-finish', 'extFinish', true);
+  initCondition('ext-cond', 'extCond');
+  initPills('roof-type', 'roofType');
+  initCondition('roof-cond', 'roofCond');
+  initText('ext-notes', 'extNotes');
+  initPills('foundation-type', 'foundationType');
+  initPills('window-type', 'windowType');
+  initPills('window-glazing', 'windowGlazing');
+  initPills('window-style', 'windowStyle');
+  initPills('driveway', 'driveway');
+  initPills('garage', 'garage');
+  initPills('site-features', 'siteFeatures', true);
+  initPills('road-type', 'roadType');
+  initCondition('landscaping', 'landscaping');
+  initPills('topography', 'topography');
+  initText('site-notes', 'siteNotes');
+  initPills('water-supply', 'waterSupply');
+  initPills('sewage', 'sewage');
+  initPills('elec-type', 'elecType');
+  initPills('other-services', 'otherServices', true);
+
+  // Phase 2
+  initYN('permits-yn', 'permitsYN');
+  initPills('heat-type', 'heatType', true);
+  initPills('cool-type', 'coolType');
+  initPills('hwt-fuel', 'hwtFuel');
+  initPills('panel-amps', 'panelAmps');
+  initPills('panel-type', 'panelType');
+  initYN('hrv-yn', 'hrvYN');
+  initPills('plumbing', 'plumbing', true);
+  initYN('kitchen-updated', 'kitchenUpdated');
+  initYN('bath-updated', 'bathUpdated');
+  initPills('well-type', 'wellType');
+  initPills('septic-type', 'septicType');
+  initPills('builtins', 'builtins', true);
+  initPills('extras', 'extras', true);
+
+  // Phase 3
+  initPills('wall-finish', 'wallFinish');
+  initPills('ceil-finish', 'ceilFinish');
+  initPills('flooring', 'flooring', true);
+  initCondition('int-cond', 'intCond');
+  initPills('countertops', 'countertops');
+  initPills('bsmt-type', 'bsmtType');
+  initPills('bsmt-finish', 'bsmtFinish');
+  initYN('walkout-yn', 'walkoutYN');
+  initPills('bsmt-rooms', 'bsmtRooms', true);
+  initCondition('bsmt-cond', 'bsmtCond');
+
+  // Sqft live total
+  ['sqft-main','sqft-second','sqft-third'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateTotal);
+  });
+});
+
+</script>
+</body>
+</html>
