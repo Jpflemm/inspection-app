@@ -797,7 +797,7 @@ canvas {
         <input class="field-input" id="setup-date" type="date">
       </div>
       <div class="field-group">
-        <label class="field-label">Assignment Type</label>
+        <label class="field-label">Assignment Type — select all that apply</label>
         <div class="pill-group" id="setup-type">
           <div class="pill" data-val="Residential Financing">Residential Financing</div>
           <div class="pill" data-val="Estate / Probate">Estate / Probate</div>
@@ -806,6 +806,8 @@ canvas {
           <div class="pill" data-val="Market Rent">Market Rent</div>
           <div class="pill" data-val="Income Property">Income Property</div>
           <div class="pill" data-val="As-If Complete">As-If Complete</div>
+          <div class="pill" data-val="Insurance">Insurance</div>
+          <div class="pill" data-val="Retrospective">Retrospective</div>
         </div>
       </div>
       <button class="btn-start" onclick="startInspection()">Begin Inspection →</button>
@@ -1582,7 +1584,7 @@ canvas {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let state = {
-  filenum: '', address: '', city: '', date: '', assignmentType: '',
+  filenum: '', address: '', city: '', date: '', assignmentType: [],
   // Phase 1
   propType: '', propStyle: '', propConstruction: '',
   extFinish: [], extCond: '', roofType: '', roofCond: '', extNotes: '',
@@ -1635,7 +1637,7 @@ function showSetup() {
   clearSavedState();
   // Reset state
   state = {
-    filenum: '', address: '', city: '', date: '', assignmentType: '',
+    filenum: '', address: '', city: '', date: '', assignmentType: [],
     propType: [], propStyle: [], propConstruction: [],
     extFinish: [], extCond: '', roofType: [], roofCond: '', extNotes: '',
     foundationType: [], windowType: [], windowGlazing: [], windowStyle: [],
@@ -1666,7 +1668,34 @@ function showSetup() {
   document.getElementById('setup-address').value = '';
   document.getElementById('setup-city').value = '';
   document.getElementById('setup-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('setup-type').querySelectorAll('.pill').forEach(p => p.className = 'pill');
+
+  // Reset ALL pill selections everywhere
+  document.querySelectorAll('.pill').forEach(p => p.className = 'pill');
+
+  // Reset ALL condition buttons
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('sel'));
+
+  // Reset ALL yes/no buttons
+  document.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('sel'));
+
+  // Reset ALL text inputs and textareas
+  document.querySelectorAll('.notes-input, .inline-input, .num-input, .field-input').forEach(el => {
+    el.value = '';
+  });
+
+  // Reset add/remove lists
+  ['garage-list', 'site-features-list', 'bsmt-baths-list'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+
+  // Reset basement bedroom counter
+  const bsmtBedsVal = document.getElementById('bsmt-beds-val');
+  if (bsmtBedsVal) bsmtBedsVal.textContent = '0';
+
+  // Reset sqft total
+  const sqftTotal = document.getElementById('sqft-total');
+  if (sqftTotal) sqftTotal.textContent = '0 sq ft';
 }
 
 // ─── PHASE NAVIGATION ────────────────────────────────────────────────────────
@@ -2061,7 +2090,7 @@ function generateOutput() {
 
   lines.push(`INSPECTION NOTES — FILE ${s.filenum}`);
   lines.push(`${s.address}${s.city ? ', ' + s.city : ''}`);
-  lines.push(`Date: ${s.date}    Assignment: ${s.assignmentType}`);
+  lines.push(`Date: ${s.date}    Assignment: ${[].concat(s.assignmentType || []).join(' + ')}`);
   lines.push('═'.repeat(50));
 
   lines.push('\n── PROPERTY TYPE ──');
@@ -2195,23 +2224,29 @@ function copyOutput() {
   });
 }
 
+function getFilename() {
+  const filenum = (state.filenum || 'Inspection').trim();
+  const address = (state.address || 'Unknown').trim();
+  return `${filenum} - ${address}`.replace(/[/\\?%*:|"<>]/g, '-');
+}
+
 function shareOutput() {
   const text = document.getElementById('outputText').textContent;
   const blob = new Blob([text], { type: 'text/plain' });
-  const file = new File([blob], `Inspection_${state.filenum}_${state.date}.txt`, { type: 'text/plain' });
+  const filename = getFilename();
+  const file = new File([blob], `${filename}.txt`, { type: 'text/plain' });
 
   if (navigator.share && navigator.canShare({ files: [file] })) {
     navigator.share({
       files: [file],
-      title: `Inspection ${state.filenum}`,
+      title: filename,
       text: `Field inspection notes — ${state.address}`
     }).catch(console.error);
   } else {
-    // Fallback: download
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Inspection_${state.filenum}.txt`;
+    a.download = `${filename}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -2299,6 +2334,14 @@ function resumeInspection() {
   if (s.address) document.getElementById('setup-address').value = s.address;
   if (s.city) document.getElementById('setup-city').value = s.city;
   if (s.date) document.getElementById('setup-date').value = s.date;
+
+  // Restore assignment type pills
+  if (s.assignmentType) {
+    [].concat(s.assignmentType).forEach(val => {
+      const pill = document.querySelector(`#setup-type [data-val="${val}"]`);
+      if (pill) pill.classList.add('selected-p1');
+    });
+  }
 
   // Restore floors
   floorCount = 0;
@@ -2465,9 +2508,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Setup type pills
   document.getElementById('setup-type').querySelectorAll('.pill').forEach(p => {
     p.addEventListener('click', () => {
-      document.getElementById('setup-type').querySelectorAll('.pill').forEach(x => x.className = 'pill');
-      p.className = 'pill selected-p1';
-      state.assignmentType = p.dataset.val;
+      p.classList.toggle('selected-p1');
+      if (!Array.isArray(state.assignmentType)) state.assignmentType = [];
+      const val = p.dataset.val;
+      if (p.classList.contains('selected-p1')) {
+        state.assignmentType.push(val);
+      } else {
+        state.assignmentType = state.assignmentType.filter(v => v !== val);
+      }
     });
   });
 
