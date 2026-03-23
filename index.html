@@ -1577,6 +1577,9 @@ canvas {
       <button class="btn-copy" onclick="copyOutput()">Copy to Clipboard</button>
       <button class="btn-share" onclick="shareOutput()">Share / Dropbox ↗</button>
     </div>
+    <div style="margin-top: 12px; padding: 12px 14px; background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); border-radius: 10px; font-size: 13px; color: var(--accent2);">
+      📐 Don't forget — go to the <strong>Measure tab</strong> and tap <strong>↓ Save Sketch</strong> on each floor canvas to export your drawings separately.
+    </div>
   </div>
 </div>
 
@@ -1913,6 +1916,7 @@ function addCanvasFloor(name) {
         <button class="canvas-btn active" id="tool-pen-${idx}" onclick="setTool('pen', ${idx})">✏️ Pen</button>
         <button class="canvas-btn" id="tool-text-${idx}" onclick="setTool('text', ${idx})">T Text</button>
         <button class="canvas-btn" id="tool-erase-${idx}" onclick="setTool('erase', ${idx})">◻ Erase</button>
+        <button class="canvas-btn" onclick="saveCanvasImage(${idx})" style="border-color:var(--green); color:var(--green);">↓ Save Sketch</button>
         <button class="canvas-btn danger" onclick="clearCanvas(${idx})">✕ Clear</button>
       </div>
       <div class="canvas-container">
@@ -2011,6 +2015,40 @@ function clearCanvas(idx) {
   const c = canvases[idx];
   if (!c) return;
   c.ctx.clearRect(0, 0, c.canvas.width, c.canvas.height);
+}
+
+function saveCanvasImage(idx) {
+  const c = canvases[idx];
+  if (!c) return;
+
+  // Create a white-background version for export
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = c.canvas.width;
+  exportCanvas.height = c.canvas.height;
+  const exportCtx = exportCanvas.getContext('2d');
+  exportCtx.fillStyle = '#ffffff';
+  exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+  exportCtx.drawImage(c.canvas, 0, 0);
+
+  const floorName = (state.floors && state.floors[idx]) ? state.floors[idx].name : `Floor ${idx + 1}`;
+  const filename = `${getFilename()} - ${floorName} Sketch.png`;
+
+  exportCanvas.toBlob(blob => {
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: filename
+      }).catch(console.error);
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }, 'image/png');
 }
 
 // ─── SQFT TOTAL ──────────────────────────────────────────────────────────────
